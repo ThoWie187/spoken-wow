@@ -457,6 +457,12 @@ local defaults = {
             -- /spq read is typed. GossipFrequency then has nothing to decide.
             Autoplay = true,
             OGThrall = false,
+            -- Kinds of NPC whose greeting does not read itself (GREETING_KINDS). All off, so a
+            -- player who never opens the page hears every NPC as before.
+            SilentGreetingKinds = {
+                FlightMaster = false, Innkeeper = false, Banker = false, Trainer = false,
+                Vendor = false, BattleMaster = false, GuildMaster = false, SpiritHealer = false,
+            },
             -- On, an automatic read starts when the window closes instead of when it opens.
             ReadAfterClose = false,
             -- What NPCs say in chat after this player accepts or turns in a quest
@@ -1352,8 +1358,75 @@ function Addon:MarkGreetingHeard(guid, text)
     HeardTexts(self.db.char.hasSeenGossipForNPC, SpeakerKey(guid))[TextKey(text)] = true
 end
 
+--- The kinds of NPC a player can keep from greeting, in the order the Gossip page lists them. An
+--- NPC is told by the icon the client puts on one of its window's options, which is the same in
+--- every language where the option's words are not. Each mark is one way a client names that
+--- icon: its file ID, its texture's name, or the type the pre-namespace GetGossipOptions gives.
+--- A stable master's option has no icon of its own, so it cannot be told and is not here.
+Addon.GREETING_KINDS = {
+    { key = "FlightMaster", marks = { 132057, "taxigossipicon", "taxi" } },
+    { key = "Innkeeper", marks = { 132052, "bindergossipicon", "binder" } },
+    { key = "Banker", marks = { 132050, "bankergossipicon", "banker" } },
+    { key = "Trainer", marks = { 132058, "trainergossipicon", "trainer" } },
+    { key = "Vendor", marks = { 132060, "vendorgossipicon", "vendor" } },
+    { key = "BattleMaster", marks = { 132051, "battlemastergossipicon", "battlemaster" } },
+    { key = "GuildMaster", marks = { 132055, "petitiongossipicon", "petition",
+        132056, "tabardgossipicon", "tabard" } },
+    { key = "SpiritHealer", marks = { 132054, "healergossipicon", "healer" } },
+}
+
+-- A texture path is matched by its file's name: clients differ in the folder and separators.
+local function Mark(icon)
+    if type(icon) == "string" then
+        return (icon:match("([^/\\]+)$") or icon):lower()
+    end
+    return icon
+end
+
+--- How the client marks each option of the gossip window on screen.
+local function GossipOptionMarks()
+    local marks = {}
+    if C_GossipInfo and C_GossipInfo.GetOptions then
+        for _, option in ipairs(C_GossipInfo.GetOptions() or {}) do
+            table.insert(marks, Mark(option.icon))
+            table.insert(marks, Mark(option.type))
+        end
+    elseif GetGossipOptions then
+        local flat = { GetGossipOptions() }
+        for i = 2, #flat, 2 do
+            table.insert(marks, Mark(flat[i]))
+        end
+    end
+    return marks
+end
+
+--- The kind of NPC the player keeps from greeting that the gossip window on screen offers an
+--- option of, or nil. One option is enough: an innkeeper selling food is silent under Vendor too.
+---@return string?
+function Addon:SilentGreetingKind()
+    local silent = self.db.profile.Audio.SilentGreetingKinds
+    for _, mark in ipairs(GossipOptionMarks()) do
+        for _, kind in ipairs(self.GREETING_KINDS) do
+            if silent[kind.key] then
+                for _, known in ipairs(kind.marks) do
+                    if mark == known then
+                        return kind.key
+                    end
+                end
+            end
+        end
+    end
+end
+
+--- Whether the gossip window on screen holds back its greeting for the NPC's kind, so the window
+--- offers Listen instead. A page the player picked an option to reach reads itself.
+function Addon:IsGreetingKindSilent()
+    return not gossipOptionPicked and self:SilentGreetingKind() ~= nil
+end
+
 ---@param followsOption boolean? the page was reached by picking one of the NPC's options
-function Addon:ShouldPlayGossip(guid, text, manual, followsOption)
+---@param onGossipPage boolean? the gossip window is the one asking, so its options tell the NPC's kind
+function Addon:ShouldPlayGossip(guid, text, manual, followsOption, onGossipPage)
     local npcKey = guid or "unknown"
 
     -- Asked for by name, so having heard it before does not stand in the way.
@@ -1368,6 +1441,11 @@ function Addon:ShouldPlayGossip(guid, text, manual, followsOption)
     -- The once-per settings hold back the greeting an NPC opens with, not the pages after it.
     if followsOption then
         return true
+    end
+    local kind = onGossipPage and self:SilentGreetingKind()
+    if kind then
+        Debug:Note("gossip", npcKey .. ":kind", "greeting of %s not read: a %s (Greeting Not Read For)", npcKey, kind)
+        return
     end
 
     local heard = self:HasHeardGreeting(guid, text)
@@ -1477,7 +1555,7 @@ function Addon:ExpectedLine(event, textIsCurrent)
         local followsOption = event == "GOSSIP_SHOW" and gossipOptionPicked
         -- Whether the greeting was heard goes by its text, so the text on screen is the best
         -- guess there is. A stale one costs only the NPC's own greeting being cut or not.
-        if not self:ShouldPlayGossip(guid, speech.text(), false, followsOption)
+        if not self:ShouldPlayGossip(guid, speech.text(), false, followsOption, event == "GOSSIP_SHOW")
             or not DataModules:HasGossipFor(speaker) then
             return nil
         end
@@ -1590,7 +1668,7 @@ function Addon:GOSSIP_SHOW(event, manual)
         return
     end
 
-    if not self:ShouldPlayGossip(guid, gossipText, manual, gossipOptionPicked) then
+    if not self:ShouldPlayGossip(guid, gossipText, manual, gossipOptionPicked, true) then
         GiveVoiceBack(event)
         return
     end

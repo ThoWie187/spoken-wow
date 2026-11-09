@@ -122,8 +122,10 @@ function DialogPlayButton:Refresh()
     self.line = nil
 
     local line, event = Addon:GetVisibleLine()
-    -- Nothing reads itself with Read Automatically off, and no NPC window does at Never.
+    -- Nothing reads itself with Read Automatically off, no NPC window does at Never, and no
+    -- greeting of a kind of NPC the player keeps from greeting.
     local held = not Addon:IsAutoplayOn() or (event and Addon:PartOfPage(event) == "gossip" and Addon:IsNever())
+        or (event == "GOSSIP_SHOW" and Addon:IsGreetingKindSilent())
     -- The panel itself, not merely the event: under DialogueUI the event arrives and the
     -- panel never shows. Switched off, the window's part puts no button on it.
     if not held or not line or not IsFrameVisible(_G[PANELS[event]]) then
@@ -186,7 +188,10 @@ function DialogPlayButton:Setup()
             GameTooltip:SetText(L.OPT_DIALOG_STOP_TIP)
         else
             GameTooltip:SetText(L.OPT_READ_TIP)
-            GameTooltip:AddLine(Addon:IsAutoplayOn() and L.OPT_NEVER_TIP or L.OPT_AUTOPLAY_OFF_TIP, 1, 0.8, 0.2, true)
+            local why = not Addon:IsAutoplayOn() and L.OPT_AUTOPLAY_OFF_TIP
+                or (not Addon:IsNever() and Addon:IsGreetingKindSilent() and L.OPT_SILENT_KIND_LISTEN_TIP)
+                or L.OPT_NEVER_TIP
+            GameTooltip:AddLine(why, 1, 0.8, 0.2, true)
         end
         GameTooltip:Show()
     end)

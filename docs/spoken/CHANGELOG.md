@@ -8,6 +8,11 @@ Spoken Player until 3.0.0, when it became Spoken and took its modules into one d
   was already playing when a fight began used to talk through the whole fight, in PvP too. It now
   stops and plays again from the start once combat ends. A story you started with Play keeps going.
   *([ScottStevenWhite](https://github.com/ScottStevenWhite))*
+- **Choose kinds of NPC whose greeting is not read.** The Gossip page has a new section, Greeting
+  Not Read For, with flight masters, innkeepers, bankers, trainers, vendors, battlemasters, guild
+  masters and spirit healers. A ticked NPC's greeting no longer reads itself and its window offers
+  Listen instead. Its quests and the pages you open from its options are still read. All are off
+  until you tick one. *([ThoWie187](https://github.com/ThoWie187))*
 
 ## 3.8.4 — 2026-11-08
 
