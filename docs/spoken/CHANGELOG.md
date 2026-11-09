@@ -4,15 +4,25 @@ Spoken Player until 3.0.0, when it became Spoken and took its modules into one d
 
 ## Unreleased
 
-- **Place stories that started on their own stop when you enter combat.** A zone or area story that
-  was already playing when a fight began used to talk through the whole fight, in PvP too. It now
-  stops and plays again from the start once combat ends. A story you started with Play keeps going.
-  *([ScottStevenWhite](https://github.com/ScottStevenWhite))*
 - **Choose kinds of NPC whose greeting is not read.** The Gossip page has a new section, Greeting
   Not Read For, with flight masters, innkeepers, bankers, trainers, vendors, battlemasters, guild
   masters and spirit healers. A ticked NPC's greeting no longer reads itself and its window offers
   Listen instead. Its quests and the pages you open from its options are still read. All are off
   until you tick one. *([ThoWie187](https://github.com/ThoWie187))*
+
+## 3.8.5 — 2026-11-10
+
+- **Place stories that started on their own stop when you enter combat.** A zone or area story that
+  was already playing when a fight began used to talk through the whole fight, in PvP too. It now
+  stops and plays again from the start once combat ends. A story you started with Play keeps going.
+  *([ScottStevenWhite](https://github.com/ScottStevenWhite))*
+- **A greeting heard once stays heard after you log out.** With Read Greetings set to Once per
+  Greeting, an NPC such as a flight master or an innkeeper no longer greets you again after a relog
+  or a server restart, and neither does a quest giver under Once for Quest Givers. Voiced objects
+  stay quiet the same way. What you hear is now shared by every copy of an NPC: a greeting heard
+  from one city guard counts for the other guards of that kind. Greetings you have already heard
+  are kept.
+  *([Devilquest](https://github.com/Devilquest))*
 
 ## 3.8.4 — 2026-11-08
 
@@ -66,13 +76,6 @@ Spoken Player until 3.0.0, when it became Spoken and took its modules into one d
   *([anon1231823](https://github.com/anon1231823))*
 - **The Bosses page lists its voice pack in your language**, in every language but Italian, which
   has none yet. *([rusty-key](https://github.com/rusty-key))*
-- **A greeting heard once stays heard after you log out.** With Read Greetings set to Once per
-  Greeting, an NPC such as a flight master or an innkeeper no longer greets you again after a relog
-  or a server restart, and neither does a quest giver under Once for Quest Givers. Voiced objects
-  stay quiet the same way. What you hear is now shared by every copy of an NPC: a greeting heard
-  from one city guard counts for the other guards of that kind. Greetings you have already heard
-  are kept.
-  *([Devilquest](https://github.com/Devilquest))*
 
 ## 3.8.0 — 2026-11-02
 
