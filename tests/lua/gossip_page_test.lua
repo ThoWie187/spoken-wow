@@ -49,8 +49,8 @@ for _, child in ipairs(content.children) do
         boxes[child.text.text] = child
     end
 end
-Expect("the sections are When to Read and Reading History", table.concat(headings, "|"),
-    W.MODULE_WHEN .. "|" .. W.MODULE_HISTORY)
+Expect("the sections are When to Read, Greeting Not Read For and Reading History", table.concat(headings, "|"),
+    W.MODULE_WHEN .. "|" .. L.OPT_SECTION_SILENT_KINDS .. "|" .. W.MODULE_HISTORY)
 -- Voice packs, the test line and Report a Problem are on the Quests page and Spoken's, for every part.
 Expect("no voice pack rows and no test line on this page", #buttons, 1)
 
@@ -95,6 +95,39 @@ Expect("with both off, Read Automatically greys too", autoplayRow.layoutReason, 
 Spoken:SetPartOn("gossip", true)
 Spoken:SetPartOn("quests", true)
 QuestsPanel.panel.layout:Refresh()
+
+---------------------------------------------------------------- greeting not read for
+local audio = VO.Addon.db.profile.Audio
+local kindBoxes = {
+    FlightMaster = L.OPT_SILENT_FLIGHT_MASTER, Innkeeper = L.OPT_SILENT_INNKEEPER, Banker = L.OPT_SILENT_BANKER,
+    Trainer = L.OPT_SILENT_TRAINER, Vendor = L.OPT_SILENT_VENDOR, BattleMaster = L.OPT_SILENT_BATTLEMASTER,
+    GuildMaster = L.OPT_SILENT_GUILD_MASTER, SpiritHealer = L.OPT_SILENT_SPIRIT_HEALER,
+}
+local count = 0
+for kind, label in pairs(kindBoxes) do
+    local box = boxes[label]
+    Expect("a box for " .. kind, box ~= nil, true)
+    if box then
+        count = count + 1
+        Expect("..." .. kind .. " unticked by default", box:GetChecked() and true or false, false)
+    end
+end
+Expect("eight kinds of NPC to keep from greeting", count, 8)
+local flight = boxes[L.OPT_SILENT_FLIGHT_MASTER]
+flight:SetChecked(true)
+flight:GetScript("OnClick")(flight)
+Expect("ticking Flight Masters saves it", audio.SilentGreetingKinds.FlightMaster, true)
+flight:SetChecked(false)
+flight:GetScript("OnClick")(flight)
+Expect("...and unticking it too", audio.SilentGreetingKinds.FlightMaster, false)
+Expect("the boxes are live with greetings read", flight.layoutReason, nil)
+stub.PickDropdown(greetings, "Never"); Panel.panel.layout:Refresh()
+Expect("...greyed at Never, saying why", flight.layoutReason, L.REASON_SILENT_KINDS_NEVER)
+stub.PickDropdown(greetings, "Every Time")
+VO.Addon:SetAutoplay(false); Panel.panel.layout:Refresh()
+Expect("...greyed with Read Automatically off, saying why", flight.layoutReason, L.REASON_AUTOPLAY_ON_QUESTS)
+VO.Addon:SetAutoplay(true); Panel.panel.layout:Refresh()
+Expect("...and live again", flight.layoutReason, nil)
 
 ---------------------------------------------------------------- forgetting greetings
 local db = VO.Addon.db

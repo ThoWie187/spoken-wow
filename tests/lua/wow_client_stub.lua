@@ -647,13 +647,15 @@ function _G.GetGossipText() return world.gossipText or "" end
 --- Put words on screen from an NPC with nothing to offer but talk: gossip text with no quest
 --- panel behind it.
 --- `options` are the labels the page offers, each leading to another page of gossip; see
---- PickGossipOption.
+--- PickGossipOption. An option given as { name =, icon =, type = } also carries the icon the
+--- client puts on it and the type the pre-namespace API names it by: what tells a flight master.
 function M.ShowGossip(text, options)
     world.gossipText = text
     world.gossipOptions = options
     world.panels.GossipFrame = true
 end
 local function GossipOptionID(i) return 1000 + i end
+local function OptionName(option) return type(option) == "table" and option.name or option end
 --- The namespaced gossip API. SetClient hands it to the clients that have one.
 M.gossipAPI = {
     GetText = function() return world.gossipText or "" end,
@@ -662,7 +664,8 @@ M.gossipAPI = {
     GetOptions = function()
         local infos = {}
         for i, name in ipairs(world.gossipOptions or {}) do
-            infos[i] = { name = name, gossipOptionID = GossipOptionID(i), orderIndex = i }
+            infos[i] = { name = OptionName(name), gossipOptionID = GossipOptionID(i), orderIndex = i,
+                icon = type(name) == "table" and name.icon or nil }
         end
         return infos
     end,
@@ -673,8 +676,8 @@ M.gossipAPI = {
 function _G.GetGossipOptions()
     local flat = {}
     for _, name in ipairs(world.gossipOptions or {}) do
-        table.insert(flat, name)
-        table.insert(flat, "gossip")
+        table.insert(flat, OptionName(name))
+        table.insert(flat, type(name) == "table" and name.type or "gossip")
     end
     return unpack(flat)
 end
@@ -684,7 +687,7 @@ function _G.SelectGossipOption() end
 --- picks by index (`byIndex`), the game's own window by id.
 function M.SelectGossipOption(name, byIndex)
     for i, option in ipairs(world.gossipOptions or {}) do
-        if option == name then
+        if OptionName(option) == name then
             if _G.C_GossipInfo and byIndex then
                 _G.C_GossipInfo.SelectOptionByIndex(i)
             elseif _G.C_GossipInfo then

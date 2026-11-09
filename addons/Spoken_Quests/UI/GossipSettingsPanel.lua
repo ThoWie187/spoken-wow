@@ -21,6 +21,18 @@ local GOSSIP_LABELS = {
     Never = L.OPT_GREETING_LABEL_NEVER,
 }
 
+-- Each kind's box under Greeting Not Read For: its label and what it covers.
+local KIND_TEXT = {
+    FlightMaster = { L.OPT_SILENT_FLIGHT_MASTER, L.OPT_SILENT_FLIGHT_MASTER_TIP },
+    Innkeeper = { L.OPT_SILENT_INNKEEPER, L.OPT_SILENT_INNKEEPER_TIP },
+    Banker = { L.OPT_SILENT_BANKER, L.OPT_SILENT_BANKER_TIP },
+    Trainer = { L.OPT_SILENT_TRAINER, L.OPT_SILENT_TRAINER_TIP },
+    Vendor = { L.OPT_SILENT_VENDOR, L.OPT_SILENT_VENDOR_TIP },
+    BattleMaster = { L.OPT_SILENT_BATTLEMASTER, L.OPT_SILENT_BATTLEMASTER_TIP },
+    GuildMaster = { L.OPT_SILENT_GUILD_MASTER, L.OPT_SILENT_GUILD_MASTER_TIP },
+    SpiritHealer = { L.OPT_SILENT_SPIRIT_HEALER, L.OPT_SILENT_SPIRIT_HEALER_TIP },
+}
+
 local function GossipName()
     return Enums.GossipFrequency:GetName(Addon.db.profile.Audio.GossipFrequency) or "Always"
 end
@@ -68,6 +80,21 @@ function GossipSettingsPanel:Setup()
     layout:Checkbox(L.OPT_OG_THRALL, nil,
         function() return audio().OGThrall end,
         function(value) audio().OGThrall = value end)
+
+    -- NPCs visited so often that their greeting wears thin, each kept quiet on its own. Like
+    -- Read Greetings, the boxes decide only what reads itself, and at Never nothing does.
+    layout:Section(L.OPT_SECTION_SILENT_KINDS)
+    layout:Columns(2)
+    local function GreetingsRead() return not Addon:IsNever() end
+    for _, kind in ipairs(Addon.GREETING_KINDS) do
+        local text = KIND_TEXT[kind.key]
+        local box = layout:Checkbox(text[1], text[2] .. "\n\n" .. L.OPT_SILENT_KINDS_TIP,
+            function() return audio().SilentGreetingKinds[kind.key] end,
+            function(value) audio().SilentGreetingKinds[kind.key] = value and true or false end)
+        layout:Requires(box, AutoplayOn, L.REASON_AUTOPLAY_ON_QUESTS)
+        layout:Requires(box, GreetingsRead, L.REASON_SILENT_KINDS_NEVER)
+    end
+    layout:Columns(nil)
 
     -- What this character has heard: forgotten, every NPC greets again. It only matters while
     -- a greeting is read once.
