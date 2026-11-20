@@ -3,7 +3,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { currentProductId } from '../shared/products'
-import { DEFAULT_SETTINGS, SETTING_CHOICES, type Settings } from '../shared/types'
+import { cleanVoiceAuthors, DEFAULT_SETTINGS, SETTING_CHOICES, type Settings } from '../shared/types'
 
 // ---------------------------------------------------------------- files
 
@@ -46,6 +46,11 @@ export function sanitizeSettings(raw: unknown, base: Settings = DEFAULT_SETTINGS
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
     const v = r[key]
     if (v === undefined) continue
+    if (key === 'voiceAuthors') {
+      const authors = cleanVoiceAuthors(v)
+      if (authors) out.voiceAuthors = authors
+      continue
+    }
     const want = typeof DEFAULT_SETTINGS[key]
     if (typeof v !== want) continue
     if (typeof v === 'string' && v.length > 2000) continue
@@ -71,6 +76,8 @@ export interface InstallRecord {
   folders: string[]
   installedAt: string
   tag: string
+  /** Installed as a version the player picked over the newest; automatic updates leave it. */
+  pinned?: boolean
 }
 
 export interface StateFile {
@@ -117,7 +124,8 @@ export function sanitizeState(raw: unknown): StateFile {
           version: x.version,
           folders: strings(x.folders),
           installedAt: typeof x.installedAt === 'string' ? x.installedAt : '',
-          tag: typeof x.tag === 'string' ? x.tag : ''
+          tag: typeof x.tag === 'string' ? x.tag : '',
+          pinned: x.pinned === true || undefined
         }
       }
       out.installs[gameId] = perGame

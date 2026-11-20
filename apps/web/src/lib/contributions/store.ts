@@ -25,7 +25,7 @@ import { DEFAULT_SORT, type ContributionSort, type SortColumn } from "./query";
 export const CONTRIBUTION_COLUMNS = `"id", "source", "key", "locale", "build", "text", "meta", "raw", "count",
                  "status", "body", "name", "email", "userId", "createdAt"::text,
                  "updatedAt"::text, "resolvedBy", "npcKind", "npcId", "npcName", "pageId",
-                 "matchLineId", "matchBookId", "matchPageNumber", "matchNewBook"`;
+                 "matchLineId", "matchBookId", "matchPageNumber", "matchNewBook", "rejectReason"`;
 const COLUMNS = CONTRIBUTION_COLUMNS;
 
 export type Contribution = {
@@ -58,6 +58,8 @@ export type Contribution = {
   matchBookId: string | null;
   matchPageNumber: number | null;
   matchNewBook: boolean;
+  /** Why a reviewer rejected the row (migration 0117); null when it is not rejected or no reason was given. */
+  rejectReason: string | null;
 };
 
 /**
@@ -281,6 +283,38 @@ export async function createContributions(submissions: readonly Submission[], se
   }
 }
 
+/**
+ * New text for rows still waiting on triage, in one statement: a moderator's edit, or a class
+ * word put back (class-words.ts). `raw` keeps the paste as sent. The dedup changes only where
+ * one is given and no other row holds it; otherwise another copy of the paste as sent still
+ * counts on the row. Answers the rows it changed, with the text each had before.
+ */
+export async function rewriteWaitingTexts(
+  texts: readonly { id: number; text: string; dedup?: string }[],
+): Promise<(Pick<Contribution, "id" | "source" | "locale" | "text"> & { previous: string | null })[]> {
+  if (texts.length === 0) return [];
+  // One new dedup per value, or the statement would write it to two rows.
+  const claimed = new Set<string>();
+  const dedups = texts.map(({ dedup }) => {
+    if (!dedup || claimed.has(dedup)) return null;
+    claimed.add(dedup);
+    return dedup;
+  });
+  const { rows } = await db().query<Pick<Contribution, "id" | "source" | "locale" | "text"> & { previous: string | null }>(
+    `with "old" as (select "id", "text" from "contribution" where "id" = any($1::int[]) for update)
+     update "contribution" c
+        set "text" = v."text", "updatedAt" = now(),
+            "dedup" = case when v."dedup" is not null
+                            and not exists (select 1 from "contribution" o where o."dedup" = v."dedup")
+                           then v."dedup" else c."dedup" end
+       from unnest($1::int[], $2::text[], $3::text[]) as v ("id", "text", "dedup"), "old"
+      where c."id" = v."id" and "old"."id" = c."id" and c."status" = 'new' and c."text" is distinct from v."text"
+      returning c."id", c."source", c."locale", c."text", "old"."text" as "previous"`,
+    [texts.map((each) => each.id), texts.map((each) => each.text), dedups],
+  );
+  return rows;
+}
+
 /** Signed-in senders appear under their account's name. Never an email. */
 export async function contributionSenders(
   id: number,
@@ -425,3 +459,6 @@ export async function contributionLocales(ids: readonly number[]): Promise<Map<n
   );
   return new Map(rows.map((row) => [row.id, row.locale]));
 }
+
+/** The longest reason a reject may carry (migration 0117's check). */
+export const REJECT_REASON_MAX = 200;

@@ -127,15 +127,18 @@ that are no dungeon, such as the PvP halls) and `battlegrounds`. Three readers u
 exporter (`pipelines/quests/tools/export_compendium.py`), the Readables exporter
 (`pipelines/readables/tools/places.mjs`) and `pipelines/lib/dungeons.mjs`, which writes
 `addons/Spoken/Data/Dungeons.lua` with each name in every language from the client's Map table.
+wago.tools serves Forever's itIT Map table in English since 1.60.1.70374, so the Italian names come
+from 1.60.1.70338 (`STRINGS_BUILD` in `dungeons.mjs`), and a dungeon newer than that has none.
 
 ```sh
 make dungeons                          # from the repository root
 node pipelines/lib/dungeons.mjs --check
 ```
 
-The table lists 29 dungeons and raids, and 20 have a `story`. The rest (Stormwind Stockade,
+The table lists 38 dungeons and raids, and 25 have a `story`. The rest (Stormwind Stockade,
 Blackrock Spire, Blackrock Depths, Maraudon, the Molten Core, Blackwing Lair, both
-Ahn'Qiraj instances and Naxxramas) have no area story, so no line. Forever's City
+Ahn'Qiraj instances, Naxxramas, the Scarlet Enclave, the Karazhan Crypts, the Drowned City and
+Alcaz Prison) have no area story, so no line. Forever's City
 of Dalaran is the `dalaran` area of Alterac Mountains, and its Ruins of Lordaeron Tirisfal Glades'
 `ruins of lordaeron`, the surface ruins its entrance is in. Run `make dungeons`, then the Quests and Readables exporters, after editing
 the JSON. `tests/lua/places_dungeons_test.lua` checks the table against the stories and the Quests
@@ -179,6 +182,12 @@ folds it.
 - `UI/MapHighlight.lua` lights the area under the cursor when a click would open its story. The
   highlight is that area's explored overlay drawn again in additive blend, so only explored areas
   light. `SpokenPlaces:AreaAt` answers both the click and the highlight.
+- `UI/OpenMap.lua` covers [OpenMap](https://github.com/openmap-world/openmap)'s stitched map,
+  through its public `OpenMapAPI` (major 1) alone. There `WorldMapFrame.mapID` is the map the view
+  is centred on, the continent until well past a zone's zoom, so the click, the highlight and the
+  panel ask it for the zone under the cursor or at the view's centre instead. A click on a city
+  tells its story without opening its map, and a hidden panel leaves the map to OpenMap. Without
+  OpenMap nothing here runs.
 - A map with no story of its own shows its parent zone's, and says so on the line under the
   title. A place with no story yet says so and offers Contribute. The panel's page uses the Text
   Language, Text Size and Show Pictures settings.

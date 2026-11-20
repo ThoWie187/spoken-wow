@@ -36,7 +36,11 @@ pack calls into it.
    the window is read: a read that finds the text empty keeps the mute and reads the window again
    every 0.2 s, up to five times (`WaitsForGreetingText`). A read that finds text and no line, or
    a greeting already heard, gives the voice back at once. With the game's dialogue left alone or
-   the queue paused nothing is muted and the window is read once.
+   the queue paused nothing is muted and the window is read once. A greeting can start before the
+   window's event, so a right-click on an NPC a pack voices takes the same mute first
+   (`MuteGreetingOnClick`). The window that opens then decides: nothing to read lifts it at once,
+   and with no window it lifts at its 1.5 s deadline. Keyboard and controller interactions have
+   no click to hear and still mute at the window.
 3. `GetNPCGossipTextHash` finds the line from the speaker and the words. It looks in the
    tables written in the client's language first (`Gossip/<lang>.lua`, then the packs'), and only
    if no pack in that language knows the NPC does it try the others. The closest match by shared
@@ -86,6 +90,11 @@ Spoken's own page. Gossip adds no saved variable.
   shares what was heard.
   Entries kept under a creature's or object's GUID, as they were before, move to that key as the
   addon loads. A key marked `true` dates from when only the NPC was kept, and counts as unheard.
+- Muted NPCs: a speaker button on a gossip or greeting window, shown only for an NPC a pack
+  voices, mutes or restores that NPC's automatic greetings for this character. They are kept in
+  `ignoredGossipNPCs` under the same key as `hasSeenGossipForNPC`, with the NPC's name. This page
+  lists them, each with Unmute, and Forget Muted NPCs clears the list. A muted NPC's window shows
+  the Listen button, which still reads its line.
 - Stop When Window Closes is on the Quests page and covers the quest, gossip and greeting windows.
   Closing the quest frame also stops a greeting, but never a quest's own line.
 
@@ -97,6 +106,9 @@ gossip, and `/sp settings` opens Spoken's page.
 
 ## Where the text and the packs come from
 
+- A pack's `TextByFileName` is what a gossip subtitle shows where the pack is in the client's
+  language, and it is for display only: the tables below still find the line
+  (`docs/spoken/CAPTIONS.md`).
 - Each client language but English has its gossip text in `Gossip/<lang>.lua`. Forever's `.toc`
   loads only the client's own with `[AllowLoadTextLocale]`.
 - `docs/quests/README.md` explains how the lines, their BroadcastText ids and the aliases are

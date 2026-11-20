@@ -69,6 +69,13 @@ local overlay = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
 overlay:Hide()
 overlay:SetScript("OnMouseUp", function() end)
 overlay:SetScript("OnMouseWheel", function() end)
+-- Another addon's plain Frames under the world map, shaped like a Leatrix pin and a dungeon
+-- menu row (#1061). Hooking OnClick on either raises in the client, and in the stub.
+local invalidPin = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
+invalidPin.row = { "boss", 0.5, 0.5, 639, "Edwin VanCleef" }
+local invalidMenuRow = CreateFrame("Frame", nil, WorldMapFrame)
+invalidMenuRow.Text = invalidMenuRow:CreateFontString()
+invalidMenuRow.Text:SetText("Gnomeregan")
 local dungeonMenuRow = CreateFrame("Button", nil, WorldMapFrame)
 dungeonMenuRow.Text = dungeonMenuRow:CreateFontString()
 dungeonMenuRow.Text:SetText("Gnomeregan")
@@ -81,11 +88,21 @@ function Bosses:IsBossFound() return true end
 function Bosses:GetAudioClip() return nil end
 function Bosses:QueuedStory() return nil end
 function Bosses:PlayStory() end
+Bosses.ReportAction = { has = function() return true end, open = function() end, title = "Report a Problem" }
+Bosses.Name = function(entry) return entry[GetLocale()] or entry[1] end
+Bosses.Model = function(map, key)
+    local entry = SpokenBossCreatures[map] and SpokenBossCreatures[map][key]
+    return entry and entry.display and { creatureID = entry.creature, displayID = entry.display }
+end
+Bosses.Unlocked = function() return false end
+assert(loadfile(here .. "/../../addons/Spoken_Bosses/MapLore.lua"))("Spoken_Bosses", Bosses)
 local load = assert(loadfile(here .. "/../../addons/Spoken_Bosses/Leatrix.lua"))
 load("Spoken_Bosses", Bosses)
 
 stub.FireEvent("PLAYER_ENTERING_WORLD")
 stub.Advance(0.01)
+Expect("a plain Frame shaped like a Leatrix pin gets no click hook", invalidPin.hooks.OnClick, nil)
+Expect("a plain Frame with a dungeon name gets no click hook", invalidMenuRow.hooks.OnClick, nil)
 WorldMapFrame.mapID = 1426
 shown = nil
 dungeonMenuRow:Click()
@@ -102,7 +119,7 @@ Expect("...with the boss story", shown and shown.entry.text, "36:edwin vancleef 
 Expect("...with the boss model creature", shown and shown.entry.model and shown.entry.model.creatureID, 639)
 Expect("...with the boss model display", shown and shown.entry.model and shown.entry.model.displayID, 2029)
 Expect("...without a boss header portrait", shown and shown.entry.icon, nil)
-Expect("...without a Places report action", shown and shown.entry.reportAction, false)
+Expect("...with the boss report action", shown and shown.entry.reportAction, Bosses.ReportAction)
 
 -- Leatrix uses Balnazzar's alternate phase creature 10813, while Spoken stores 10812.
 WorldMapFrame.mapID = 317

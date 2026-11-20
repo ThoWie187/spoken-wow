@@ -323,6 +323,12 @@ Expect("...and a greyed Play", page.play:IsShown() and not page.play:IsEnabled()
 _G.SpokenBossStories[36] = { ["edwin vancleef"] = "He led the Brotherhood.", _ = "Mines under Moonbrook." }
 Click("Edwin VanCleef")
 Expect("...or the story where there is one", page.body.text.text, "He led the Brotherhood.")
+Expect("...and a Report button", page.report:IsShown(), true)
+local showReport, reported = Spoken.ShowReport, nil
+Spoken.ShowReport = function(_, url) reported = url end
+page.report.scripts.OnClick(page.report)
+Expect("...Report opens the boss story address", reported, "https://spoken.quest/bosses/r/36/edwin-vancleef")
+Spoken.ShowReport = showReport
 Expect("...its row lit as chosen", RowFor("Edwin VanCleef").selected, true)
 _G.SpokenBossStories[36]["edwin vancleef"] = { "He led the Brotherhood.", deDE = "Er führte die Bruderschaft.", [2] = nil }
 Click("Edwin VanCleef")
@@ -498,10 +504,10 @@ do
         end
         return nil
     end
-    language.Voice, language.Fallback = "itIT", "none"
+    language.Voice, language.Fallback = "viVN", "none"
     panel.layout:Refresh()
     Expect("a voice language with no boss pack and Stay Silent is said under the voice packs",
-        Silent(), SpokenEnv.L.MODULE_NO_VOICE_FMT:format(Spoken:LanguageName("itIT")))
+        Silent(), SpokenEnv.L.MODULE_NO_VOICE_FMT:format(Spoken:LanguageName("viVN")))
     Expect("...and English's is not offered, nothing falling back on it", English().shown, false)
     language.Fallback = "enUS"
     panel.layout:Refresh()
@@ -532,8 +538,73 @@ Expect("with no pack, a boss's story is a line with no recording", tostring(clip
 Expect("...headed by its dungeon, named for the boss", clip.present.header .. "|" .. clip.present.label, "Deadmines|Edwin VanCleef")
 Expect("...with its story and its face", clip.present.transcript .. "|" .. tostring(clip.present.portrait.creatureID),
     "He led the Brotherhood.|639")
+Expect("...with a Report action in the narrator", clip.present.actions and clip.present.actions[1].id, "report")
+local showReport, reported = Spoken.ShowReport, nil
+Spoken.ShowReport = function(_, url) reported = url end
+clip.present.actions[1].onClick(clip)
+Expect("...whose Report opens the boss story address", reported, "https://spoken.quest/bosses/r/36/edwin-vancleef")
+local getAudioClip = Bosses.GetAudioClip
+Bosses.GetAudioClip = function() return { path = "x.mp3", len = 41.2, language = "deDE" } end
+local voiced = Bosses:StoryClip(36, "edwin vancleef")
+voiced.present.actions[1].onClick(voiced)
+Expect("...filed under the language heard, not the one on screen", reported,
+    "https://spoken.quest/deDE/bosses/r/36/edwin-vancleef")
+local built
+Spoken.ShowReport = function(_, url, build) reported, built = url, build and build() end
+Bosses.GetAudioClip = function()
+    return { path = "x.mp3", len = 41.2, language = "deDE", packFolder = "SpokenBossesAudio_deDE_stimmen", voice = "deDE_stimmen" }
+end
+voiced = Bosses:StoryClip(36, "edwin vancleef")
+Bosses.GetAudioClip = function() return { path = "y.mp3", len = 1, language = "enUS", packFolder = "SpokenBossesAudio", voice = "enUS" } end
+voiced.present.actions[1].onClick(voiced)
+Expect("...with an envelope of its own", built and built:match("^!SPOKEN1 bosses\n") ~= nil, true)
+Expect("...naming the boss", built and built:match("\nmap=36\nkey=edwin vancleef\n") ~= nil, true)
+Expect("...and the pack that played, not the one that would play now, with its team", built
+    and built:match("\npackFolder=SpokenBossesAudio_deDE_stimmen\npackTeam=stimmen\n") ~= nil, true)
+Bosses:ShowReport(36, "edwin vancleef", "enUS")
+Expect("...a report with no clip names the pack the story plays from", built
+    and built:match("\npackFolder=SpokenBossesAudio\n") ~= nil and built:match("\npackTeam=") == nil, true)
+Bosses.GetAudioClip = getAudioClip
+Spoken.ShowReport = showReport
 Expect("...shown for six seconds at least", clip.length, 6)
 Expect("a boss with no story has no line", Bosses:StoryClip(36, "no such boss"), nil)
+
+-- Polish chosen as the Text Language: a text pack's (Spoken's Texts.lua) story and name, on the
+-- narrator and the page; the name the game shows is still the one matched.
+H.ReadText("plPL")
+Spoken:RegisterText("plPL", "bosses", { stories = { [36] = { ["edwin vancleef"] = "Przewodził Bractwu." } },
+    names = { [36] = { ["edwin vancleef"] = "Edwin VanCleef (PL)" } } })
+local polish = Bosses:StoryClip(36, "edwin vancleef")
+Expect("Polish chosen, the story is the text pack's", polish.present.transcript, "Przewodził Bractwu.")
+Expect("...named as the pack names the boss", polish.present.label, "Edwin VanCleef (PL)")
+Expect("...a line in Polish where no voice reads it", tostring(polish.language) .. "|" .. tostring(polish.textOnly), "plPL|true")
+Bosses.GetAudioClip = function() return { path = "x.mp3", len = 41.2, language = "enUS", times = "0 1" } end
+local heard = Bosses:StoryClip(36, "edwin vancleef")
+Expect("...over an English voice, the Polish words, timed by estimate", heard.present.transcript .. "|"
+    .. tostring(heard.present.timings), "Przewodził Bractwu.|nil")
+Bosses.GetAudioClip = function() return { path = "x.mp3", len = 41.2, language = "plPL", times = "0 1" } end
+heard = Bosses:StoryClip(36, "edwin vancleef")
+Expect("...over a Polish voice with no words of its own, untimed: the text pack's words are not what it says",
+    tostring(heard.present.timings), "nil")
+Bosses.GetAudioClip = getAudioClip
+local vancleef
+for _, boss in ipairs(SpokenBosses.maps[36]) do if boss.key == "edwin vancleef" then vancleef = boss end end
+Expect("...and matching still reads the client's name", Bosses.Name(vancleef), "Edwin VanCleef")
+Expect("a boss the pack has no story for keeps the English", Bosses:StoryClip(36, "edwin vancleef") ~= nil
+    and (function()
+        _G.SpokenBossStories[36]["rhahkzor"] = "An ogre."
+        local clip = Bosses:StoryClip(36, "rhahkzor")
+        return clip and clip.present.transcript
+    end)(), "An ogre.")
+-- English chosen on a German client: English, which Data/Stories.lua and Data/Bosses.lua keep first.
+_G.SpokenBossStories[36]["edwin vancleef"] = { "He led the Brotherhood.", deDE = "Er führte die Bruderschaft." }
+_G.GetLocale = function() return "deDE" end
+H.ReadText("enUS")
+local english = Bosses:StoryClip(36, "edwin vancleef")
+Expect("English chosen on a German client, the story and name are English",
+    english.present.transcript .. "|" .. english.present.label, "He led the Brotherhood.|Edwin VanCleef")
+_G.GetLocale = function() return "enUS" end
+H.ReadText(nil)
 
 local world = stub.world
 local Q = SpokenEnv.SoundQueue

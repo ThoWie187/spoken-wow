@@ -9,6 +9,157 @@ Spoken Player until 3.0.0, when it became Spoken and took its modules into one d
   masters and spirit healers. A ticked NPC's greeting no longer reads itself and its window offers
   Listen instead. Its quests and the pages you open from its options are still read. All are off
   until you tick one. *([ThoWie187](https://github.com/ThoWie187))*
+- **The minimap right-click menu now uses the client's native menu where available.** Older
+  clients keep the legacy dropdown or Spoken's custom fallback, and the menu also opens from
+  the addon compartment. *([anon1231823](https://github.com/anon1231823))*
+- **Quest pages in Azeroth's Compendium show the progress text**, what the NPC says while a quest
+  is under way, between the description and the completion, with its own Play and Report. A quest
+  a voice pack voices only in its progress now counts for Voiced Only, and shift-click on its row
+  plays it. *([anon1231823](https://github.com/anon1231823))*
+- **A non-English client finds Forever's newer places.** The area names now come from client
+  1.60.1.70959, so the new dungeons' areas and the places Forever renamed match their stories.
+  Dalaran in Korean and Russian, Dire Maul in Spanish and Dreadmaul Post in Russian have no
+  story: the client gives each the name of another place in the same zone. *([svengabr](https://github.com/svengabr))*
+- **Text Language offers the language of every voice pack you have installed**, including one no
+  game client runs in, such as Italian. The captions then show what that pack's voice says. Before,
+  such a language appeared only with a text pack, so an Italian voice came with English words.
+  *([rusty-key](https://github.com/rusty-key))*
+- **When Stop When Window Closes is enabled, unaccepted quest offers and unturned-in quest pages stop
+  when their dialog closes.** Accepted offers and turned-in quest pages continue playing. Gossip
+  audio is unaffected and continues after its window closes; with the option off, quest behavior
+  remains as before. *([anon1231823](https://github.com/anon1231823))*
+  New profiles have the option enabled by default; existing saved choices are kept.
+- **No more Lua error on the world map with Leatrix Maps.** Spoken Bosses no longer tries to
+  make other addons' map frames clickable while it looks for Leatrix's dungeon pins and menu.
+  *([anon1231823](https://github.com/anon1231823))*
+- **Forever's five new dungeons are in the Compendium.** The Bosses tab lists the bosses of the
+  Drowned City, Krol'dok Stronghold, Alcaz Prison, Blackmaw Hold and the Shaper's Terrace. The
+  Places tab lists Krol'dok Stronghold, Blackmaw Hold and the Shaper's Terrace under the zone of
+  their entrance, and entering one counts it as found. Its story is read where your voice pack has
+  it.
+  *([svengabr](https://github.com/svengabr))*
+
+## 3.10.1 — 2026-11-19
+
+- **A line or page you contribute goes as your game showed it.** Your character's name, class,
+  race and sex go beside it, and the site turns them back into the game's placeholders before
+  anything is kept, so the site never stores your name from what this version sends. Collect
+  Missing Lines keeps lines as your game showed them, name included, in your own saved file until
+  you upload it. The site can now improve that step without an addon update. *([rusty-key](https://github.com/rusty-key))*
+- For feature addons: `Spoken:GetCaption()` names the story `Spoken:PlayStory` played in `story`,
+  as the `{ kind, id }` it was asked for, so an addon knows the line is its own without comparing
+  text. *([Torchlite-bit](https://github.com/Torchlite-bit))*
+- **Bosses has its own icon in the AddOns list.** It showed Spoken's mark; it now shows a dragon's
+  head, like Quests, Places and Readables each show their own. *([Nucabe](https://github.com/Nucabe))*
+- **Mute one NPC's greetings.** A speaker button on an NPC's gossip or greeting window mutes that
+  NPC's automatic greetings for this character and drops its greetings already waiting in the
+  queue. Gossip settings lists the muted NPCs, each with Unmute. The window's Listen button still
+  plays a muted NPC's line.
+  *([anon1231823](https://github.com/anon1231823))*
+- **Voices, in order.** Voice Language and If a Voice Is Missing are now one list in the Language
+  section of Spoken's page: as many voices as you like, moved up and down, removed, and added with
+  Add a Voice. A line plays in the first voice that has it, and past the last Spoken stays silent.
+  Your choice carries over as the first two voices. *([rusty-key](https://github.com/rusty-key))*
+- **Voice packs from other teams.** Where a language has packs from more than one team, each
+  team's is a voice of its own in that list, named for its team, so you choose whose German you
+  hear first and whose fills in. A report on a line names the team whose pack played it, so it
+  reaches them. *([rusty-key](https://github.com/rusty-key))*
+
+## 3.10.0 — 2026-11-17
+
+- **Interface Language.** A new setting in the Language section of Spoken's page picks the language
+  of Spoken's own windows, menus and settings, apart from the game's: any language Spoken is
+  translated into, or one an interface pack brings, such as Polish, made by its translators
+  ([how to make one](https://github.com/rusty-key/spoken-wow/blob/master/docs/contributors/INTERFACE-PACKS.md)).
+  A string the pack has not translated yet shows in the game's language.
+  *([rusty-key](https://github.com/rusty-key))*
+- **Italian voices for places, readables and bosses are offered.** With Italian as the Voice
+  Language, those pages now link to the Italian packs on GitHub.
+  *([rusty-key](https://github.com/rusty-key))*
+- **Text Language, for everything Spoken shows.** A new setting in the Language section of Spoken's
+  page picks the language of the words in captions, subtitles and Azeroth's Compendium, apart from
+  the voice: quests, gossip, readables, bosses and places. It replaces Text Language on the Places
+  page, and a language chosen there carries over. Languages no game client runs in, such as Polish,
+  can now come as text packs: addons of words with no voice, made by their translators
+  ([how to make one](https://github.com/rusty-key/spoken-wow/blob/master/docs/contributors/TEXT-PACKS.md)).
+  *([rusty-key](https://github.com/rusty-key))*
+- **Item-started quests show their item.** The Compendium and the Small Window now show the real
+  icon of the item that starts a quest, even after the item has left your bags, rather than a
+  posted notice. *([anon1231823](https://github.com/anon1231823))*
+
+## 3.9.0 — 2026-11-14
+
+- **A report names the line you heard.** When a quest is read in more than one voice, or an NPC has
+  several lines, the Report link now carries the recording that played, so the report lands on that
+  line rather than asking you to pick one. *([rusty-key](https://github.com/rusty-key))*
+- **Read Quest Progress Text.** A new Quests setting, on by default, under Read Automatically.
+  Turned off, the "not done yet" page an NPC shows before you hand in a quest no longer reads
+  itself; its Play button still plays it.
+  *([rusty-key](https://github.com/rusty-key))*
+- **Places no longer shows the combat hold message when Stop When Combat Starts is off.**
+  Autoplayed place audio continues normally during combat in that mode.
+  *([anon1231823](https://github.com/anon1231823))*
+- **A report says which pack you heard.** A Places report now carries the version of the Places
+  sound pack you were listening to, and a Quests report names the pack the line played from
+  (Alliance, Horde, Shared or Gossip) with its own version. The report page uses it to tell you
+  when that pack has a newer recording of the line, and where to get it.
+  *([rusty-key](https://github.com/rusty-key))*
+- **Subtitles and Compendium text now follow your sound packs.** A pack carries the words of the
+  lines it voices, so new audio no longer plays under old text. This applies when the pack is in
+  the language you read; a German player with English voices keeps German text. In English, quest
+  text now says "Adventurer" where the voice does, rather than your character's name.
+  *([rusty-key](https://github.com/rusty-key))*
+- **A voice pack brings its own language.** A pack names its language in its `.toc`, and Spoken
+  lists it in the Voice and Fallback menus as soon as the pack is installed, whatever the language
+  is: Italian, Polish, Vietnamese, Hebrew. A pack can also give the language's name and a font, which
+  Spoken uses for the name and the lore pages. Places offers a pack's lore language
+  when the pack says it carries lore.
+  *([rusty-key](https://github.com/rusty-key))*
+- **A voice pack in a language Spoken did not list before is chosen under Voice Language.** If you
+  play a pack in such a language, such as Hebrew, pick it there. "Auto" follows your client and no
+  longer takes that pack for English.
+  *([rusty-key](https://github.com/rusty-key))*
+
+## 3.8.7 — 2026-11-12
+
+- **Ironforge opens only from Ironforge on Dun Morogh's map.** A city's area on its zone's map
+  reaches well past its walls, so a click in Dun Morogh's mountains, at Grizzled Den, opened
+  Ironforge's map. A city now opens only from inside its own map's outline on the zone.
+  *([tworekj](https://github.com/tworekj))*
+- **OpenMap's dungeon maps open dungeon and boss lore.** With Spoken Bosses installed, opening a
+  dungeon in OpenMap shows its story beside the map, and clicking a boss in OpenMap's Bosses panel
+  opens the boss's story, portrait and Report button. OpenMap remains an optional integration, so
+  players without it see no change. *([anon1231823](https://github.com/anon1231823))*
+- **Boss models show in the story panel beside the map on WoW Forever**, from Leatrix Maps too. The
+  Forever client left them blank there.
+  *([rusty-key](https://github.com/rusty-key))*
+- **Place stories work on [OpenMap](https://github.com/openmap-world/openmap)'s world map.**
+  Areas light up under the cursor again, in any zone on screen, and a click opens the story of
+  the area you clicked rather than one in the zone at the centre of the view. Dragging the map no
+  longer opens a city's map. Zoomed in on a zone, the panel tells that zone's story, a click
+  elsewhere in a zone opens the zone's, and a zone clicked at the edge of the view slides into
+  full view. With the panel folded away, OpenMap's map is left to OpenMap's own clicks.
+  *([carcachi](https://github.com/carcachi))*
+- **Places can read a zone every time you arrive.** Turn on Read Every Visit under Places, When to
+  Read, and choose how long to wait before the same place is read again: a day, a week or a
+  month. Off by default, so places are still read once per character.
+  *([belarusrulez](https://github.com/belarusrulez))*
+
+## 3.8.6 — 2026-11-10
+
+- **Place stories play through combat again, unless you turn on Stop When Combat Starts.** The new
+  setting is under Read Automatically on the Places page. On, a story that started on its own
+  stops when a fight begins and plays again from the start once it ends, as in 3.8.5. A story
+  that has not started yet still waits for the fight to end either way.
+  *([rusty-key](https://github.com/rusty-key))*
+- **An NPC's own greeting no longer slips out before Spoken's line on a first talk.** Right-clicking
+  an NPC with a recorded greeting silences its voice before the window opens. If no window opens, or
+  there is nothing to read, the voice comes back. Reported by
+  *([banoliver](https://github.com/banoliver))*
+- **Boss stories have a Report button**, on a boss's page in the Compendium, on the narrator when a
+  story plays after a kill, and in the Leatrix Maps boss panel. It opens the story's report page in
+  the language you were reading, or, from the narrator, the language you heard it in.
+  *([anon1231823](https://github.com/anon1231823))*
 
 ## 3.8.5 — 2026-11-10
 
